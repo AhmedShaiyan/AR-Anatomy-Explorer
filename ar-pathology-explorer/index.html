@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AR Pathology Assistant</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        #hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        
+        #control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            min-width: 280px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        #control-panel.open {
+            transform: translateX(0);
+        }
+        
+        #status-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 120px;
+            transition: all 0.2s;
+        }
+        
+        .btn:active {
+            background: #0056CC;
+            transform: scale(0.95);
+        }
+        
+        .btn.active {
+            background: #00ff88;
+            color: black;
+        }
+        
+        .btn:disabled {
+            background: #666;
+            color: #999;
+        }
+        
+        .btn.ai-btn {
+            background: #9c27b0;
+        }
+        
+        .btn.ai-btn:active {
+            background: #7b1fa2;
+        }
+        
+        #touch-controls {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: block;
+        }
+        
+        .control-section {
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+        }
+        
+        .control-section h4 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            color: #00ff88;
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .control-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            min-width: 60px;
+        }
+        
+        .control-btn:active {
+            background: #555;
+        }
+        
+        #alignment-score {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        
+        .score-excellent { background: rgba(0,255,136,0.3) !important; }
+        .score-good { background: rgba(255,165,0,0.3) !important; }
+    </style>
+</head>
+<body>
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        gesture-detector>
+        
+        <a-entity id="orange-hologram" position="0 0 -1" visible="true">
+            <a-sphere 
+                radius="0.12" 
+                color="#ff6600" 
+                opacity="0.8"
+                material="transparent: true; roughness: 0.8;">
+            </a-sphere>
+            
+            <a-sphere 
+                radius="0.125" 
+                color="#ff8800" 
+                opacity="0.3"
+                material="transparent: true; wireframe: true;">
+            </a-sphere>
+            
+            <a-sphere radius="0.008" color="#ff4400" position="0.08 0.05 0.08" opacity="0.9"></a-sphere>
+            <a-sphere radius="0.006" color="#ff4400" position="-0.07 0.09 -0.04" opacity="0.9"></a-sphere>
+            <a-sphere radius="0.007" color="#ff4400" position="0.04 -0.08 0.09" opacity="0.9"></a-sphere>
+            
+            <a-entity id="alignment-grid">
+                <a-torus radius="0.12" radius-tubular="0.002" color="#00ff88" opacity="0.8" rotation="0 0 0"></a-torus>
+                <a-torus radius="0.12" radius-tubular="0.002" color="#00ff88" opacity="0.8" rotation="90 0 0"></a-torus>
+                
+                <a-cylinder radius="0.001" height="0.3" color="#ffff00" opacity="0.9" position="0 0 0"></a-cylinder>
+                <a-cylinder radius="0.001" height="0.3" color="#ffff00" opacity="0.9" rotation="0 0 90" position="0 0 0"></a-cylinder>
+                <a-cylinder radius="0.001" height="0.3" color="#ffff00" opacity="0.9" rotation="90 0 0" position="0 0 0"></a-cylinder>
+                
+                <a-sphere radius="0.008" color="#00ff88" position="0 0.12 0" opacity="1"></a-sphere>
+                <a-sphere radius="0.008" color="#00ff88" position="0 -0.12 0" opacity="1"></a-sphere>
+                <a-sphere radius="0.008" color="#00ff88" position="0.12 0 0" opacity="1"></a-sphere>
+                <a-sphere radius="0.008" color="#00ff88" position="-0.12 0 0" opacity="1"></a-sphere>
+            </a-entity>
+            
+            <a-entity id="lesion-indicator" visible="false">
+                <a-sphere 
+                    radius="0.025"
+                    color="#ff0000"
+                    position="0.05 0.03 -0.02"
+                    opacity="0.9"
+                    animation="property: opacity; to: 0.5; dir: alternate; dur: 1500; loop: true">
+                </a-sphere>
+                <a-ring radius-inner="0.02" radius-outer="0.035" color="#ff4444" position="0.05 0.03 -0.02" opacity="0.6"></a-ring>
+            </a-entity>
+            
+            <a-text 
+                id="registration-status"
+                value="MANUAL ALIGNMENT\nPosition over sample, then use AI Registration"
+                position="0 0.25 0"
+                scale="0.08 0.08 0.08"
+                color="#00ff88"
+                align="center"
+                billboard="true">
+            </a-text>
+            
+            <a-entity id="cutting-planes" visible="false">
+                <a-plane 
+                    width="0.35" 
+                    height="0.35" 
+                    color="#ff0000" 
+                    opacity="0.7"
+                    position="0.02 0.01 -0.01"
+                    rotation="15 25 0"
+                    material="transparent: true; side: double;">
+                </a-plane>
+                
+                <a-plane 
+                    width="0.3" 
+                    height="0.3" 
+                    color="#ffaa00" 
+                    opacity="0.4"
+                    position="0.02 0.01 -0.01"
+                    rotation="15 115 0"
+                    material="transparent: true; side: double;">
+                </a-plane>
+                
+                <a-cylinder radius="0.002" height="0.4" color="#ffffff" opacity="1" position="0.02 0.01 -0.01" rotation="15 25 0"></a-cylinder>
+            </a-entity>
+            
+            <a-entity id="roi-markers" visible="false">
+                <a-sphere 
+                    radius="0.02"
+                    color="#ff0000"
+                    position="0.05 0.03 -0.02"
+                    opacity="1.0"
+                    animation="property: scale; to: 1.4 1.4 1.4; dir: alternate; dur: 800; loop: true">
+                </a-sphere>
+                
+                <a-ring radius-inner="0.035" radius-outer="0.045" color="#ffaa00" position="0.05 0.03 -0.02" opacity="0.8"></a-ring>
+                <a-ring radius-inner="0.05" radius-outer="0.055" color="#00ff88" position="0.05 0.03 -0.02" opacity="0.6"></a-ring>
+                
+                <a-text 
+                    value="OPTIMAL CUT ANGLE\nCaptures lesion with safe margins"
+                    position="0 -0.2 0"
+                    scale="0.08 0.08 0.08"
+                    color="#ff4444"
+                    align="center"
+                    billboard="true">
+                </a-text>
+            </a-entity>
+        </a-entity>
+        
+        <a-camera 
+            position="0 0 0"
+            look-controls="enabled: true; reverseMouseDrag: true"
+            wasd-controls="enabled: false">
+            
+            <a-cursor 
+                position="0 0 -0.5"
+                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+                material="color: white; opacity: 0.8">
+            </a-cursor>
+        </a-camera>
+    </a-scene>
+
+    <button id="hamburger-btn" onclick="toggleMenu()">☰</button>
+
+    <div id="control-panel">
+        <h3>AR Pathology Assistant</h3>
+        <div>
+            <button class="btn" onclick="toggleHologram(); closeMenu();">Toggle Hologram</button>
+            <button class="btn ai-btn" id="ai-btn" onclick="aiRegistration(); closeMenu();">AI Registration</button>
+            <button class="btn" id="planes-btn" onclick="showCuttingPlanes(); closeMenu();" disabled>Show Cut Guidance</button>
+            <button class="btn" onclick="resetDemo(); closeMenu();">Reset</button>
+        </div>
+        <div id="alignment-score">
+            Position hologram over sample, then run AI Registration
+        </div>
+    </div>
+
+    <div id="touch-controls">
+        <div class="control-section">
+            <h4>Manual Positioning</h4>
+            <div class="control-row">
+                <button class="control-btn" onmousedown="startMove('left')" onmouseup="stopMove()" ontouchstart="startMove('left')" ontouchend="stopMove()">Left</button>
+                <button class="control-btn" onmousedown="startMove('up')" onmouseup="stopMove()" ontouchstart="startMove('up')" ontouchend="stopMove()">Up</button>
+                <button class="control-btn" onmousedown="startMove('right')" onmouseup="stopMove()" ontouchstart="startMove('right')" ontouchend="stopMove()">Right</button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn" onmousedown="startMove('closer')" onmouseup="stopMove()" ontouchstart="startMove('closer')" ontouchend="stopMove()">Closer</button>
+                <button class="control-btn" onmousedown="startMove('down')" onmouseup="stopMove()" ontouchstart="startMove('down')" ontouchend="stopMove()">Down</button>
+                <button class="control-btn" onmousedown="startMove('farther')" onmouseup="stopMove()" ontouchstart="startMove('farther')" ontouchend="stopMove()">Farther</button>
+            </div>
+        </div>
+        
+        <div class="control-section">
+            <h4>Rotation & Scale</h4>
+            <div class="control-row">
+                <button class="control-btn" onmousedown="startRotate('y', -1)" onmouseup="stopMove()" ontouchstart="startRotate('y', -1)" ontouchend="stopMove()">Rotate L</button>
+                <button class="control-btn" onmousedown="startScale(-1)" onmouseup="stopMove()" ontouchstart="startScale(-1)" ontouchend="stopMove()">Smaller</button>
+                <button class="control-btn" onmousedown="startRotate('y', 1)" onmouseup="stopMove()" ontouchstart="startRotate('y', 1)" ontouchend="stopMove()">Rotate R</button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn" onclick="resetPosition()">Reset</button>
+                <button class="control-btn" onmousedown="startScale(1)" onmouseup="stopMove()" ontouchstart="startScale(1)" ontouchend="stopMove()">Bigger</button>
+                <button class="control-btn" onmousedown="startRotate('x', 1)" onmouseup="stopMove()" ontouchstart="startRotate('x', 1)" ontouchend="stopMove()">Tilt</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-bar">
+        <div id="status">Position hologram over sample, then use AI Registration</div>
+    </div>
+
+    <script>
+        let hologramVisible = true;
+        let registrationComplete = false;
+        let planesVisible = false;
+        let moveInterval;
+        let currentPosition = { x: 0, y: 0, z: -1 };
+        let currentRotation = { x: 0, y: 0, z: 0 };
+        let currentScale = 1;
+        let menuOpen = false;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('AR Pathology Demo starting...');
+            updateStatus('Position hologram over sample, then run AI Registration');
+        });
+        
+        function aiRegistration() {
+            const aiBtn = document.querySelector('#ai-btn');
+            const statusText = document.querySelector('#registration-status');
+            const alignmentScore = document.querySelector('#alignment-score');
+            const touchControls = document.querySelector('#touch-controls');
+            const planesBtn = document.querySelector('#planes-btn');
+            const lesionIndicator = document.querySelector('#lesion-indicator');
+            const hologram = document.querySelector('#orange-hologram');
+            
+            aiBtn.textContent = 'Processing...';
+            aiBtn.disabled = true;
+            touchControls.style.display = 'none';
+            
+            statusText.setAttribute('value', 'AI REGISTRATION\nAnalyzing sample...');
+            statusText.setAttribute('color', '#9c27b0');
+            
+            updateStatus('AI analyzing sample surface and orientation...');
+            
+            setTimeout(() => {
+                alignmentScore.textContent = 'Sample detected! Analyzing surface features...';
+                alignmentScore.className = 'score-good';
+                
+                setTimeout(() => {
+                    statusText.setAttribute('value', 'AI REGISTRATION\nOptimizing orientation...');
+                    alignmentScore.textContent = 'Fine-tuning hologram orientation...';
+                    
+                    const adjustedRotation = {
+                        x: currentRotation.x + (Math.random() - 0.5) * 8,
+                        y: currentRotation.y + (Math.random() - 0.5) * 12,
+                        z: currentRotation.z + (Math.random() - 0.5) * 6
+                    };
+                    
+                    hologram.setAttribute('animation__rotation', 
+                        `property: rotation; to: ${adjustedRotation.x} ${adjustedRotation.y} ${adjustedRotation.z}; dur: 1200; easing: easeInOutQuad`);
+                    currentRotation = adjustedRotation;
+                    
+                    setTimeout(() => {
+                        statusText.setAttribute('value', 'AI REGISTRATION\nFinalizing calibration...');
+                        alignmentScore.textContent = 'Calibrating hologram scale...';
+                        
+                        const adjustedScale = currentScale * (0.98 + Math.random() * 0.04);
+                        hologram.setAttribute('animation__scale', 
+                            `property: scale; to: ${adjustedScale} ${adjustedScale} ${adjustedScale}; dur: 800; easing: easeInOutQuad`);
+                        currentScale = adjustedScale;
+                        
+                        setTimeout(() => {
+                            hologram.removeAttribute('animation__rotation');
+                            hologram.removeAttribute('animation__scale');
+                            
+                            registrationComplete = true;
+                            
+                            aiBtn.textContent = 'Registration Complete';
+                            aiBtn.classList.add('active');
+                            aiBtn.disabled = false;
+                            planesBtn.disabled = false;
+                            
+                            statusText.setAttribute('value', 'REGISTRATION COMPLETE\n94.7% confidence - Hologram locked to sample');
+                            statusText.setAttribute('color', '#00ff88');
+                            
+                            alignmentScore.textContent = 'AI Registration: 94.7% confidence - Hologram aligned to sample!';
+                            alignmentScore.className = 'score-excellent';
+                            
+                            lesionIndicator.setAttribute('visible', 'true');
+                            
+                            updateStatus('AI Registration complete! Hologram locked to sample - Ready for cutting guidance');
+                        }, 1000);
+                    }, 1200);
+                }, 1500);
+            }, 1000);
+        }
+        
+        function toggleMenu() {
+            const panel = document.querySelector('#control-panel');
+            const btn = document.querySelector('#hamburger-btn');
+            menuOpen = !menuOpen;
+            panel.classList.toggle('open', menuOpen);
+            btn.textContent = menuOpen ? '✕' : '☰';
+        }
+        
+        function closeMenu() {
+            const panel = document.querySelector('#control-panel');
+            const btn = document.querySelector('#hamburger-btn');
+            menuOpen = false;
+            panel.classList.remove('open');
+            btn.textContent = '☰';
+        }
+        
+        function toggleHologram() {
+            const hologram = document.querySelector('#orange-hologram');
+            hologramVisible = !hologramVisible;
+            hologram.setAttribute('visible', hologramVisible);
+            
+            const touchControls = document.querySelector('#touch-controls');
+            if (hologramVisible && !registrationComplete) {
+                touchControls.style.display = 'block';
+            } else {
+                touchControls.style.display = 'none';
+            }
+            
+            updateStatus(hologramVisible ? 'Hologram visible' : 'Hologram hidden');
+        }
+        
+        function showCuttingPlanes() {
+            if (!registrationComplete) {
+                updateStatus('Please complete AI Registration first');
+                return;
+            }
+            
+            const planesBtn = document.querySelector('#planes-btn');
+            const cuttingPlanes = document.querySelector('#cutting-planes');
+            const roiMarkers = document.querySelector('#roi-markers');
+            const alignmentGrid = document.querySelector('#alignment-grid');
+            
+            planesVisible = !planesVisible;
+            
+            if (planesVisible) {
+                cuttingPlanes.setAttribute('visible', 'true');
+                roiMarkers.setAttribute('visible', 'true');
+                alignmentGrid.setAttribute('visible', 'false');
+                
+                planesBtn.textContent = 'Hide Cut Guidance';
+                planesBtn.classList.add('active');
+                
+                updateStatus('Cutting guidance active - Red plane shows optimal lesion sampling angle');
+            } else {
+                cuttingPlanes.setAttribute('visible', 'false');
+                roiMarkers.setAttribute('visible', 'false');
+                alignmentGrid.setAttribute('visible', 'true');
+                
+                planesBtn.textContent = 'Show Cut Guidance';
+                planesBtn.classList.remove('active');
+                
+                updateStatus('Registration complete - Ready for cutting guidance');
+            }
+        }
+        
+        function startMove(direction) {
+            if (registrationComplete) {
+                updateStatus('Hologram registered - Use "Reset" to enable manual controls');
+                return;
+            }
+            
+            const speed = 0.02;
+            moveInterval = setInterval(() => {
+                const hologram = document.querySelector('#orange-hologram');
+                
+                switch(direction) {
+                    case 'left': currentPosition.x -= speed; break;
+                    case 'right': currentPosition.x += speed; break;
+                    case 'up': currentPosition.y += speed; break;
+                    case 'down': currentPosition.y -= speed; break;
+                    case 'closer': currentPosition.z += speed; break;
+                    case 'farther': currentPosition.z -= speed; break;
+                }
+                
+                hologram.setAttribute('position', `${currentPosition.x} ${currentPosition.y} ${currentPosition.z}`);
+            }, 50);
+        }
+        
+        function startRotate(axis, direction) {
+            if (registrationComplete) {
+                updateStatus('Hologram registered - Use "Reset" to enable manual controls');
+                return;
+            }
+            
+            const speed = 2;
+            moveInterval = setInterval(() => {
+                const hologram = document.querySelector('#orange-hologram');
+                
+                if (axis === 'x') currentRotation.x += direction * speed;
+                else if (axis === 'y') currentRotation.y += direction * speed;
+                
+                hologram.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+            }, 50);
+        }
+        
+        function startScale(direction) {
+            if (registrationComplete) {
+                updateStatus('Hologram registered - Use "Reset" to enable manual controls');
+                return;
+            }
+            
+            const speed = 0.02;
+            moveInterval = setInterval(() => {
+                const hologram = document.querySelector('#orange-hologram');
+                currentScale += direction * speed;
+                currentScale = Math.max(0.5, Math.min(2.0, currentScale));
+                hologram.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
+            }, 50);
+        }
+        
+        function stopMove() {
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+        }
+        
+        function resetPosition() {
+            if (registrationComplete) {
+                updateStatus('Hologram registered - Use "Reset" to unlock');
+                return;
+            }
+            
+            const hologram = document.querySelector('#orange-hologram');
+            
+            currentPosition = { x: 0, y: 0, z: -1 };
+            currentRotation = { x: 0, y: 0, z: 0 };
+            currentScale = 1;
+            
+            hologram.setAttribute('position', '0 0 -1');
+            hologram.setAttribute('rotation', '0 0 0');
+            hologram.setAttribute('scale', '1 1 1');
+            
+            updateStatus('Hologram position reset to center');
+        }
+        
+        function resetDemo() {
+            const hologram = document.querySelector('#orange-hologram');
+            const aiBtn = document.querySelector('#ai-btn');
+            const planesBtn = document.querySelector('#planes-btn');
+            const touchControls = document.querySelector('#touch-controls');
+            const statusText = document.querySelector('#registration-status');
+            const alignmentScore = document.querySelector('#alignment-score');
+            const lesionIndicator = document.querySelector('#lesion-indicator');
+            const alignmentGrid = document.querySelector('#alignment-grid');
+            const cuttingPlanes = document.querySelector('#cutting-planes');
+            const roiMarkers = document.querySelector('#roi-markers');
+            
+            hologram.setAttribute('visible', 'true');
+            hologram.setAttribute('position', '0 0 -1');
+            hologram.setAttribute('rotation', '0 0 0');
+            hologram.setAttribute('scale', '1 1 1');
+            hologram.removeAttribute('animation');
+            hologram.removeAttribute('animation__scale');
+            hologram.removeAttribute('animation__rotation');
+            
+            hologramVisible = true;
+            registrationComplete = false;
+            planesVisible = false;
+            currentPosition = { x: 0, y: 0, z: -1 };
+            currentRotation = { x: 0, y: 0, z: 0 };
+            currentScale = 1;
+            
+            aiBtn.textContent = 'AI Registration';
+            aiBtn.classList.remove('active');
+            aiBtn.disabled = false;
+            
+            planesBtn.textContent = 'Show Cut Guidance';
+            planesBtn.classList.remove('active');
+            planesBtn.disabled = true;
+            
+            touchControls.style.display = 'block';
+            
+            statusText.setAttribute('value', 'MANUAL ALIGNMENT\nPosition over sample, then use AI Registration');
+            statusText.setAttribute('color', '#00ff88');
+            
+            alignmentScore.textContent = 'Position hologram over sample, then run AI Registration';
+            alignmentScore.className = '';
+            
+            lesionIndicator.setAttribute('visible', 'false');
+            alignmentGrid.setAttribute('visible', 'true');
+            cuttingPlanes.setAttribute('visible', 'false');
+            roiMarkers.setAttribute('visible', 'false');
+            
+            updateStatus('Demo reset - Position hologram and run AI Registration');
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            console.log('Status:', message);
+        }
+        
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
