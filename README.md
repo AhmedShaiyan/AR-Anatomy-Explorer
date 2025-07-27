@@ -1,4 +1,4 @@
-# AR Pathology Assistant
+# AR Pathology Explorer
 
 **Real-time AR guidance for pathology specimen grossing and surgical planning**
 
