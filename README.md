@@ -2,7 +2,7 @@
 
 **Real-time AR guidance for pathology specimen grossing and surgical planning**
 
-## 🔬 Project Description
+##  Project Description
 
 The AR Pathology Assistant is an innovative web-based augmented reality application designed to revolutionize pathology specimen processing. It provides real-time visual guidance to pathology assistants during the critical "grossing" stage, where physical specimens (organs, tissues) are manually cut to prepare them for microscopic examination.
 
@@ -18,7 +18,7 @@ Pathology assistants often rely on CT scans and radiology images as references w
 - **Real-time guidance** for lesion sampling with safety margins
 - **Web-based platform** accessible on any mobile device
 
-## 🚀 Key Features
+## Key Features
 
 - **Manual Hologram Positioning** - Intuitive touch controls for precise alignment
 - **AI Registration System** - Automatic specimen recognition and orientation optimization
@@ -27,7 +27,7 @@ Pathology assistants often rely on CT scans and radiology images as references w
 - **Mobile-First Design** - Works on smartphones and tablets
 - **Real-Time AR** - No additional hardware required
 
-## 🛠 Technologies Used
+## Technologies Used
 
 ### Frontend & AR
 - **A-Frame 1.4.0** - WebXR framework for cross-platform AR
@@ -45,21 +45,29 @@ Pathology assistants often rely on CT scans and radiology images as references w
 - **CT Scan Processing** - Framework for radiology data alignment
 - **3D Mesh Support** - Specimen shape analysis capabilities
 
-## 📱 Demo Screenshots
+## Demo Screenshots
 
 ### Manual Alignment Interface
-![Menu](./assets/AI%20Registration.jpg)
+<img src="./ar-pathology-explorer/assets/Menu.jpg" alt="Manual Alignment" width="300">
+
 *Touch controls for precise specimen alignment*
+**
+
+### AI Registration Process
+<img src="./ar-pathology-explorer/assets/AI%20Registration.jpg" alt="AI Registration" width="300">
+
+*Simulated specimen recognition and optimization*
+**
 
 ### Cutting Guidance Visualization
-![Cutting Guidance](https://via.placeholder.com/600x400/ff0000/FFFFFF?text=Optimal+Cut+Angle+Visualization)
-*AR overlay showing optimal cutting planes and safety margins*
+<img src="./ar-pathology-explorer/assets/Cutting%20plane%20visulisation.jpg" alt="Cutting Guidance" width="300">
 
-### Mobile Interface
-![Mobile UI](https://via.placeholder.com/300x600/007AFF/FFFFFF?text=Mobile+AR+Interface)
-*Responsive design optimized for smartphones*
+*AR overlay showing optimal cutting planes and safety margins with lesion targeting*
 
-## 🏥 Use Cases
+### Demo Video
+[Watch Full AR Demo](./ar-pathology-explorer/assets/NOC_AR_Pathology_Demo.mp4)
+
+## Use Cases
 
 ### Primary Workflow
 1. **Specimen Placement** - Position tissue sample in camera view
@@ -73,20 +81,15 @@ Pathology assistants often rely on CT scans and radiology images as references w
 - **Forensic Pathology** - Evidence preservation and documentation
 - **Training** - Educational tool for pathology residents
 
-## ⚙️ Setup and Installation
+## Setup and Installation
 
 ### Prerequisites
 - Modern web browser with WebRTC support (Chrome, Safari, Firefox)
 - Mobile device with camera 
 
 
-2. **Deploy to Netlify**
-   - Visit [netlify.com/drop](https://app.netlify.com/drop)
-   - Drag and drop the entire project folder
-   - Get instant live URL
-
-3. **Access Application**
-   - Open provided Netlify URL on mobile device
+2. **Access Application**
+   - [Open provided Netlify URL](https://animated-elf-12b594.netlify.app/)
    - Allow camera permissions when prompted
    - Begin AR experience
 
@@ -99,11 +102,11 @@ ar-pathology-assistant/
 ├── app.js                   # Core AR logic 
 ├── README.md                # Project documentation
 └── assets/                  # Screenshots and demo materials
-    ├── demo-screenshots/
+    ├── 
    
 ```
 
-## 👥 Team Members
+## Team Members
 
 ### **Lead Dev**
 **Shaiyan Alam** - *Full-Stack Development*
@@ -120,7 +123,7 @@ ar-pathology-assistant/
 
 
 
-## 🔮 Future Roadmap
+## Future Roadmap
 
 ### Phase 1: Enhanced Detection
 - Real-time specimen shape analysis
@@ -134,7 +137,3 @@ ar-pathology-assistant/
 
 ---
 
-**Live Demo**: [https://ar-pathology-assistant.netlify.app](https://your-netlify-url.netlify.app)
-
-
----
