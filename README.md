@@ -48,12 +48,8 @@ Pathology assistants often rely on CT scans and radiology images as references w
 ## 📱 Demo Screenshots
 
 ### Manual Alignment Interface
-![Manual Alignment](https://via.placeholder.com/600x400/00ff88/000000?text=Manual+Hologram+Positioning)
+![Menu](./assets/AI%20Registration.jpg)
 *Touch controls for precise specimen alignment*
-
-### AI Registration Process
-![AI Registration](https://via.placeholder.com/600x400/9c27b0/FFFFFF?text=AI+Registration+94.7%25+Confidence)
-*Automated specimen recognition and optimization*
 
 ### Cutting Guidance Visualization
 ![Cutting Guidance](https://via.placeholder.com/600x400/ff0000/FFFFFF?text=Optimal+Cut+Angle+Visualization)
