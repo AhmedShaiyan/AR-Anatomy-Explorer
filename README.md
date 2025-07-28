@@ -30,7 +30,6 @@ Pathology assistants often rely on CT scans and radiology images as references w
 ## Technologies Used
 
 ### Frontend & AR
-- **A-Frame 1.4.0** - WebXR framework for cross-platform AR
 - **AR.js** - Marker-less AR tracking and camera integration
 - **WebRTC** - Real-time camera access and processing
 - **HTML5/CSS3** - Responsive UI with mobile optimization
